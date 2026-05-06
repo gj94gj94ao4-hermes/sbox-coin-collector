@@ -3,21 +3,21 @@ using Sandbox;
 namespace CoinCollector;
 
 /// <summary>
-/// A collectible coin entity. Spins and glows to attract players.
+/// A collectible coin entity. Spins and bobs to attract players.
 /// Has a Value property so we can have different coin types later.
 /// </summary>
 [Title( "Coin" )]
 [Category( "Coin Collector" )]
 [Icon( "currency_circle_dollar" )]
-public partial class Coin : AnimatedEntity
+public partial class Coin : ModelEntity
 {
 	[Net] public int Value { get; set; } = 1;
 	[Net] public TimeSince TimeSinceSpawn { get; set; }
+	[Net] public Vector3 BasePosition { get; set; }
 
 	private float spinSpeed = 120f;
 	private float bobSpeed = 2f;
 	private float bobAmount = 3f;
-	private Vector3 basePosition;
 
 	public override void Spawn()
 	{
@@ -29,10 +29,10 @@ public partial class Coin : AnimatedEntity
 		EnableAllCollisions = true;
 		SetupPhysicsFromModel( PhysicsMotionType.Keyframed );
 
-		basePosition = Position;
+		// Store and replicate spawn position so client can bob around it
+		BasePosition = Position;
 		TimeSinceSpawn = 0f;
 
-		// Glow effect
 		Transmit = TransmitType.Always;
 	}
 
@@ -42,8 +42,8 @@ public partial class Coin : AnimatedEntity
 		// Spinning animation
 		Rotation = Rotation.RotateAroundAxis( Vector3.Up, spinSpeed * Time.Delta );
 
-		// Bob up and down
-		Position = basePosition + Vector3.Up * MathF.Sin( Time.Now * bobSpeed ) * bobAmount;
+		// Bob up and down using the replicated base position
+		Position = BasePosition + Vector3.Up * MathF.Sin( Time.Now * bobSpeed ) * bobAmount;
 
 		// Scale pulse effect
 		var scale = 1f + MathF.Sin( Time.Now * 3f ) * 0.05f;

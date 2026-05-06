@@ -17,6 +17,7 @@ public partial class CoinCollectorPawn : AnimatedEntity
 		base.Spawn();
 
 		SetModel( "models/citizen/citizen.vmdl" );
+		Transmit = TransmitType.Always;
 		EnableDrawing = true;
 		EnableHitboxes = true;
 		EnableAllCollisions = true;
@@ -45,10 +46,10 @@ public partial class CoinCollectorPawn : AnimatedEntity
 	{
 		if ( Controller != null )
 		{
-			Controller.Simulate( this, Animator, null );
+			Controller.Simulate( client );
 		}
 
-		// Simple coin pickup via overlap test
+		// Simple coin pickup via overlap test (server only)
 		if ( Game.IsServer )
 		{
 			var overlaps = Entity.FindInSphere( Position, 30f );

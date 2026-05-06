@@ -1,6 +1,7 @@
 {
   "Title": "Coin Collector",
   "Description": "A simple s&box game mode - collect as many coins as you can before time runs out! Fast-paced multiplayer coin-grabbing fun.",
+  "Ident": "coin-collector",
   "Version": "1.0.0",
   "Tags": [ "gamemode", "multiplayer", "casual" ],
   "Dependencies": {

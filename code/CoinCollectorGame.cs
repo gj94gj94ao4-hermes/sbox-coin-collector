@@ -15,7 +15,13 @@ public partial class CoinCollectorGame : GameManager
 	[Net] public TimeSince TimeSinceRoundStart { get; set; }
 	[Net] public bool RoundActive { get; set; } = false;
 	[Net] public int MaxCoins { get; set; } = 15;
-	[Net] public int CoinsSpawned { get; set; } = 0;
+
+	/// <summary>
+	/// Track all active coins for efficient lookup instead of Entity.All scan.
+	/// </summary>
+	private List<Coin> ActiveCoins { get; set; } = new();
+
+	private bool _restartPending = false;
 
 	public CoinCollectorGame()
 	{
@@ -59,8 +65,7 @@ public partial class CoinCollectorGame : GameManager
 		}
 
 		// Replenish coins if too few are on the map
-		var coinCount = Entity.All.OfType<Coin>().Count();
-		if ( coinCount < MaxCoins )
+		if ( ActiveCoins.Count < MaxCoins )
 		{
 			SpawnCoin();
 		}
@@ -68,8 +73,14 @@ public partial class CoinCollectorGame : GameManager
 
 	public void StartRound()
 	{
+		// Cancel any pending restart to avoid conflicts
+		_restartPending = false;
+
 		TimeSinceRoundStart = 0f;
 		RoundActive = true;
+
+		// Clean up old coins first
+		CleanupCoins();
 
 		// Reset all player scores
 		foreach ( var client in Game.Clients )
@@ -80,6 +91,9 @@ public partial class CoinCollectorGame : GameManager
 				pawn.Respawn();
 			}
 		}
+
+		// Spawn fresh coins
+		SpawnCoins();
 
 		CoinCollectorHud.Announce( To.Everyone, "GO!", "Collect coins!" );
 	}
@@ -98,23 +112,31 @@ public partial class CoinCollectorGame : GameManager
 
 		CoinCollectorHud.Announce( To.Everyone, "Time's Up!", $"{winnerName} wins with {winnerScore} coins!" );
 
-		// Restart round after 5 seconds
-		_ = RestartAfterDelay();
+		// Restart round after 5 seconds (guard against double-restart)
+		if ( !_restartPending )
+		{
+			_restartPending = true;
+			_ = RestartAfterDelay();
+		}
 	}
 
 	async Task RestartAfterDelay()
 	{
 		await GameTask.DelaySeconds( 5 );
 
-		// Clean up old coins
-		foreach ( var coin in Entity.All.OfType<Coin>().ToList() )
+		// Check if a manual restart happened while we waited
+		if ( !_restartPending ) return;
+
+		StartRound();
+	}
+
+	private void CleanupCoins()
+	{
+		foreach ( var coin in ActiveCoins.ToList() )
 		{
 			coin.Delete();
 		}
-
-		CoinsSpawned = 0;
-		SpawnCoins();
-		StartRound();
+		ActiveCoins.Clear();
 	}
 
 	public void SpawnCoins()
@@ -127,12 +149,13 @@ public partial class CoinCollectorGame : GameManager
 
 	public void SpawnCoin()
 	{
-		if ( CoinsSpawned >= MaxCoins * 2 ) return; // Don't go crazy
+		// Safety cap: don't spawn more than 2x MaxCoins total
+		if ( ActiveCoins.Count >= MaxCoins * 2 ) return;
 
 		var coin = new Coin();
 		var pos = GetRandomSpawnPosition();
 		coin.Position = pos;
-		CoinsSpawned++;
+		ActiveCoins.Add( coin );
 	}
 
 	private Vector3 GetRandomSpawnPosition()
@@ -166,10 +189,10 @@ public partial class CoinCollectorGame : GameManager
 		if ( !RoundActive ) return;
 
 		collector.Score += coin.Value;
+		ActiveCoins.Remove( coin );
 		coin.Delete();
-		CoinsSpawned--;
 
-		// Sound & particle feedback
+		// Feedback to the collecting player
 		CoinCollectorHud.ShowToast( To.Single( collector.Client ), $"+{coin.Value} coins!" );
 	}
 
