@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>CoinCollector</RootNamespace>
+    <AssemblyName>CoinCollector</AssemblyName>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Sandbox.Game" Version="*" />
+    <PackageReference Include="Sandbox.Engine" Version="*" />
+  </ItemGroup>
+</Project>

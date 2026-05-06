@@ -1,0 +1,29 @@
+.score-panel {
+	position: absolute;
+	top: 32px;
+	left: 32px;
+	flex-direction: column;
+	align-items: flex-start;
+
+	.score-value {
+		font-size: 64px;
+		font-weight: bold;
+		color: #ffd700;
+		text-shadow: 0 0 20px rgba(255, 215, 0, 0.5),
+					 2px 2px 4px rgba(0, 0, 0, 0.8);
+		font-family: "Inter", sans-serif;
+		transition: transform 0.15s ease-out;
+	}
+
+	.score-label {
+		font-size: 18px;
+		color: #ffd70099;
+		letter-spacing: 4px;
+		font-family: "Inter", sans-serif;
+		text-transform: uppercase;
+	}
+
+	&.scored .score-value {
+		transform: scale( 1.3 );
+	}
+}

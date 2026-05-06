@@ -1,0 +1,20 @@
+# s&box build artifacts
+code/.vs/
+code/bin/
+code/obj/
+*.dll
+*.pdb
+*.cache
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# s&box local config
+.sbox/
